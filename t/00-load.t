@@ -2,8 +2,9 @@
 
 use Test::More tests => 1;
 
-BEGIN {
+BEGIN
+{
 	use_ok( 'File::OPC' );
 }
 
-diag( "Testing File::OPC $File::OPC::VERSION, Perl $], $^X" );
+diag( sprintf 'Testing File::OPC %.2f, Perl %s, %s', $File::OPC::VERSION, $], $^X );
