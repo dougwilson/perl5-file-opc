@@ -6,3 +6,5 @@ lib/File/OPC.pm
 t/00-load.t
 t/01-pod.t
 t/02-pod-coverage.t
+t/03-critic.t
+t/03-perlcriticrc
