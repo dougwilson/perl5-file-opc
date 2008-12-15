@@ -4,5 +4,5 @@ Makefile.PL
 README
 lib/File/OPC.pm
 t/00-load.t
-t/pod-coverage.t
-t/pod.t
+t/01-pod.t
+t/02-pod-coverage.t
