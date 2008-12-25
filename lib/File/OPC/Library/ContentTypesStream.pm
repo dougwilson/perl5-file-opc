@@ -25,7 +25,7 @@ our $VERSION = '0.01';
 
 subtype FileExtension()
 	=> as Str()
-	=> where { /^[a-z]+$/x; };
+	=> where { m{ \A [a-z]+ \z }msx; };
 
 coerce FileExtension()
 	=> from Object()
@@ -33,12 +33,12 @@ coerce FileExtension()
 			if ( $_->isa( 'URI' ) )
 			{
 				# This is for converting URI objects
-				return lc( [ pop( @{ [ $_->path_segments ] } ) =~ /\.([a-z]+)$/ix ]->[0] );
+				return lc( [ pop( @{ [ $_->path_segments ] } ) =~ m{ \. ( [a-z]+ ) \z }imsx ]->[0] );
 			}
 			return;
 		}
 	=> from Str()
-		=> via { /^[a-z]+$/ix ? lc( $_ ) : lc( [ /\.([a-z]+)$/ix ]->[0] ) };
+		=> via { m{ \A [a-z]+ \z }imsx ? lc( $_ ) : lc( [ m{ \. ( [a-z]+ ) \z }imsx ]->[0] ) };
 
 subtype MimeType()
 	=> as Object()
@@ -69,15 +69,28 @@ File::OPC::Library::ContentTypesStream - Content Types Stream Markup types
 
 =head1 VERSION
 
-Version 0.01
+This documentation refers to <File::OPC::Library::ContentTypesStream> version 0.01
 
 =head1 SYNOPSIS
+
+  use File::OPC::Library::ContentTypesStream qw( MimeType MimeTypeMap );
+  # This will import MimeType and MimeTypeMap types into your namespace
+  # as well as some helpers like to_MimeType and is_MimeType
+  
+  my $text_mime = to_MimeType( 'text/plain' ); # Change the string to a MIME type type
+  if ( is_MimeType( $text_mime ) ) {           # Test if $text_mime is a MIME type
+      print $text_mime->mediaType;
+  }
+
+=head1 DESCRIPTION
 
 This module provides types unique to handling Content Types Sctreams.
 
 =head1 TYPES PROVIDED
 
 =over 4
+
+=item * FileExtension
 
 =item * MimeType
 
@@ -91,13 +104,13 @@ This module provides types unique to handling Content Types Sctreams.
 
 Douglas Christopher Wilson, C<< <doug at somethingdoug.com> >>
 
-=head1 BUGS
+=head1 BUGS AND LIMITATIONS
 
 Please report any bugs or feature requests to C<bug-file-opc at rt.cpan.org>, or through
 the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=File-OPC>.  I will be notified, and then you'll
 automatically be notified of progress on your bug as I make changes.
 
-=head1 COPYRIGHT & LICENSE
+=head1 LICENSE AND COPYRIGHT
 
 Copyright 2008 Douglas Christopher Wilson
 

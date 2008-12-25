@@ -123,6 +123,8 @@ sub get_default
 	$extension = to_FileExtension( $extension )
 		unless is_FileExtension( $extension );
 
+	return unless defined $extension;
+
 	# Return the MIME Type
 	return exists $self->{ 'defaults' }->{ $extension } ? $self->{ 'defaults' }->{ $extension } : undef;
 }

@@ -5,10 +5,9 @@ use warnings 'all';
 
 use Test::More tests => 7;
 
-use URI 1.37;
+use URI 0.07;
 
-BEGIN
-{
+BEGIN {
 	use_ok( 'File::OPC::ContentTypesStream' );
 }
 

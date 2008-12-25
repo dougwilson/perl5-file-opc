@@ -9,10 +9,11 @@ requires 'MIME::Type' => 1.24;
 requires 'Moose' => 0.62;
 requires 'Moose::Util::TypeConstraints';
 requires 'MooseX::Types' => 0.08;
-requires 'URI';
+requires 'URI' => 0.07;
 requires 'XML::XPath' => 1.13;
 
 test_requires 'File::Spec';
 test_requires 'Test::More';
+test_requires 'URI' => 0.07;
 
 WriteAll;

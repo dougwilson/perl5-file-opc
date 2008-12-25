@@ -1,1 +1,8 @@
-severity = 3
+exclude  = Miscellanea::RequireRcsKeywords
+severity = 1
+
+[TestingAndDebugging::RequireUseStrict]
+severity = 5
+
+[TestingAndDebugging::RequireUseWarnings]
+severity = 5
