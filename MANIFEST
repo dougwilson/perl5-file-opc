@@ -3,8 +3,11 @@ MANIFEST
 Makefile.PL
 README
 lib/File/OPC.pm
+lib/File/OPC/ContentTypesStream.pm
+lib/File/OPC/Library/ContentTypesStream.pm
 t/00-load.t
 t/01-pod.t
 t/02-pod-coverage.t
 t/03-critic.t
 t/03-perlcriticrc
+t/content-types-stream-markup.t

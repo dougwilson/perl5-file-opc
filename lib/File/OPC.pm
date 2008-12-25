@@ -1,6 +1,8 @@
 package File::OPC;
 
-use warnings;
+use 5.008;
+
+use warnings 'all';
 use strict;
 
 =head1 NAME
