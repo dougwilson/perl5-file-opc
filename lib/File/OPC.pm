@@ -7,7 +7,7 @@ use strict;
 
 =head1 NAME
 
-File::OPC - The great new File::OPC!
+File::OPC - Manipulate Open Packaging Conventions files.
 
 =head1 VERSION
 
@@ -98,12 +98,11 @@ L<http://search.cpan.org/dist/File-OPC>
 
 =head1 COPYRIGHT & LICENSE
 
-Copyright 2008 Douglas Christopher Wilson, all rights reserved.
+Copyright 2008 Douglas Christopher Wilson.
 
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
 
-
 =cut
 
-1; # End of File::OPC
+1;

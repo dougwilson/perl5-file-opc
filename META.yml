@@ -1,0 +1,30 @@
+---
+abstract: 'Manipulate Open Packaging Conventions files.'
+author:
+  - 'Douglas Christopher Wilson <doug@somethingdoug.com>'
+build_requires:
+  File::Spec: 0
+  Test::More: 0
+distribution_type: module
+generated_by: 'Module::Install version 0.77'
+license: perl
+meta-spec:
+  url: http://module-build.sourceforge.net/META-spec-v1.4.html
+  version: 1.4
+name: File-OPC
+no_index:
+  directory:
+    - inc
+    - t
+requires:
+  Carp: 0
+  MIME::Type: 1.24
+  Moose: 0.62
+  Moose::Util::TypeConstraints: 0
+  MooseX::Types: 0.08
+  URI: 0
+  XML::XPath: 1.13
+  perl: 5.8.0
+resources:
+  license: http://dev.perl.org/licenses/
+version: 0.01
