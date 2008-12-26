@@ -2,21 +2,20 @@ package File::OPC::Library::ContentTypesStream;
 
 use 5.008;
 use strict;
+use utf8;
 use warnings 'all';
 
-use MooseX::Types 0.08
-	-declare => [qw(
-		FileExtension
-		MimeType
-		MimeTypeMap
-		UriPack
-	)];
-use MooseX::Types::Moose
-	qw(
-		HashRef
-		Object
-		Str
-	);
+use MooseX::Types 0.08 -declare => [qw(
+	FileExtension
+	MimeType
+	MimeTypeMap
+	UriPack
+)];
+use MooseX::Types::Moose qw(
+	HashRef
+	Object
+	Str
+);
 
 use MIME::Type 1.24;
 use URI;
@@ -33,12 +32,12 @@ coerce FileExtension()
 			if ( $_->isa( 'URI' ) )
 			{
 				# This is for converting URI objects
-				return lc( [ pop( @{ [ $_->path_segments ] } ) =~ m{ \. ( [a-z]+ ) \z }imsx ]->[0] );
+				return lc [ pop( @{ [ $_->path_segments ] } ) =~ m{ \. ( [a-z]+ ) \z }imsx ]->[0];
 			}
 			return;
 		}
 	=> from Str()
-		=> via { m{ \A [a-z]+ \z }imsx ? lc( $_ ) : lc( [ m{ \. ( [a-z]+ ) \z }imsx ]->[0] ) };
+		=> via { m{ \A [a-z]+ \z }imsx ? lc( $_ ) : lc [ m{ \. ( [a-z]+ ) \z }imsx ]->[0] };
 
 subtype MimeType()
 	=> as Object()
@@ -63,6 +62,8 @@ coerce UriPack()
 
 __END__
 
+=encoding utf8
+
 =head1 NAME
 
 File::OPC::Library::ContentTypesStream - Content Types Stream Markup types
@@ -86,6 +87,10 @@ This documentation refers to <File::OPC::Library::ContentTypesStream> version 0.
 
 This module provides types unique to handling Content Types Sctreams.
 
+=head1 METHODS
+
+No methods.
+
 =head1 TYPES PROVIDED
 
 =over 4
@@ -100,15 +105,25 @@ This module provides types unique to handling Content Types Sctreams.
 
 =back
 
-=head1 AUTHOR
+=head1 DEPENDENCIES
 
-Douglas Christopher Wilson, C<< <doug at somethingdoug.com> >>
+This module is dependent on the following modules:
+
+L<MIME::Type>
+L<MooseX::Types>
+L<MooseX::Types::Moose>
+L<URI>
 
 =head1 BUGS AND LIMITATIONS
 
-Please report any bugs or feature requests to C<bug-file-opc at rt.cpan.org>, or through
-the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=File-OPC>.  I will be notified, and then you'll
-automatically be notified of progress on your bug as I make changes.
+Please report any bugs or feature requests to C<bug-file-opc at rt.cpan.org>,
+or through the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=File-OPC>.
+I will be notified, and then you'll automatically be notified of progress on
+your bug as I make changes.
+
+=head1 AUTHOR
+
+Douglas Christopher Wilson, C<< <doug at somethingdoug.com> >>
 
 =head1 LICENSE AND COPYRIGHT
 

@@ -1,9 +1,17 @@
 package File::OPC;
 
 use 5.008;
-
-use warnings 'all';
 use strict;
+use utf8;
+use warnings 'all';
+
+our $VERSION = '0.01';
+
+1;
+
+__END__
+
+=encoding utf8
 
 =head1 NAME
 
@@ -11,12 +19,7 @@ File::OPC - Manipulate Open Packaging Conventions files.
 
 =head1 VERSION
 
-Version 0.01
-
-=cut
-
-our $VERSION = '0.01';
-
+This documnetation refers to <File::OPC> version 0.01
 
 =head1 SYNOPSIS
 
@@ -29,80 +32,28 @@ Perhaps a little code snippet.
     my $foo = File::OPC->new();
     ...
 
-=head1 EXPORT
+=head1 DESCRIPTION
 
-A list of functions that can be exported.  You can delete this section
-if you don't export anything, such as for a purely object-oriented module.
+This module provides an interface to Open Packaging Conventions files.
 
-=head1 FUNCTIONS
+=head1 METHODS
 
-=head2 function1
+=head1 DEPENDENCIES
 
-=cut
+=head1 BUGS AND LIMITATIONS
 
-sub function1 {
-}
-
-=head2 function2
-
-=cut
-
-sub function2 {
-}
+Please report any bugs or feature requests to C<bug-file-opc at rt.cpan.org>,
+or through the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=File-OPC>.
+I will be notified, and then you'll automatically be notified of progress on
+your bug as I make changes.
 
 =head1 AUTHOR
 
 Douglas Christopher Wilson, C<< <doug at somethingdoug.com> >>
 
-=head1 BUGS
+=head1 LICENSE AND COPYRIGHT
 
-Please report any bugs or feature requests to C<bug-file-opc at rt.cpan.org>, or through
-the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=File-OPC>.  I will be notified, and then you'll
-automatically be notified of progress on your bug as I make changes.
-
-
-
-
-=head1 SUPPORT
-
-You can find documentation for this module with the perldoc command.
-
-    perldoc File::OPC
-
-
-You can also look for information at:
-
-=over 4
-
-=item * RT: CPAN's request tracker
-
-L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=File-OPC>
-
-=item * AnnoCPAN: Annotated CPAN documentation
-
-L<http://annocpan.org/dist/File-OPC>
-
-=item * CPAN Ratings
-
-L<http://cpanratings.perl.org/d/File-OPC>
-
-=item * Search CPAN
-
-L<http://search.cpan.org/dist/File-OPC>
-
-=back
-
-
-=head1 ACKNOWLEDGEMENTS
-
-
-=head1 COPYRIGHT & LICENSE
-
-Copyright 2008 Douglas Christopher Wilson.
+Copyright 2008 Douglas Christopher Wilson
 
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
-
-=cut
-
-1;
