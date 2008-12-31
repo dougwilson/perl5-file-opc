@@ -6,9 +6,10 @@ use utf8;
 use warnings 'all';
 
 use Moose 0.62;
-use Moose::Util::TypeConstraints;
+use MooseX::FollowPBP;
 use MooseX::StrictConstructor;
 
+use File::OPC::ContentTypesStream::Default;
 use File::OPC::Library::ContentTypesStream qw(
 	FileExtension
 	MimeType
@@ -23,9 +24,9 @@ our $AUTHORITY = 'cpan:DOUGDUDE';
 our $VERSION   = '0.01';
 
 has 'defaults' => (
-	'isa' => MimeTypeMap,
-	'coerce' => 1,
-	'default' => sub { { } },
+	'default' => sub { [ ] },
+	'is'      => 'rw',
+	'isa'     => 'ArrayRef[File::OPC::ContentTypesStream::Default]',
 );
 
 has 'overrides' => (
@@ -58,12 +59,8 @@ sub BUILD {
 
 	# Now get all the default values
 	foreach my $default_node ( $xpath->findnodes( '/ct:Types/ct:Default' ) ) {
-		my $content_type = to_MimeType( $default_node->getAttribute( 'ContentType' ) );
-		my $extension    = to_FileExtension( $default_node->getAttribute( 'Extension' ) );
-
-		if ( !defined $content_type || !defined $extension ) {
-			next;
-		}
+		my $content_type = $default_node->getAttribute( 'ContentType' );
+		my $extension    = $default_node->getAttribute( 'Extension' );
 
 		# Add the default to memory
 		$self->add_default( $extension => $content_type );
@@ -88,21 +85,16 @@ sub BUILD {
 sub add_default {
 	my ( $self, $extension, $content_type ) = @_;
 
-	# Coerce
-	if ( !is_MimeType( $content_type ) ) {
-		$content_type = to_MimeType( $content_type );
-	}
-	if ( !is_FileExtension( $extension ) ) {
-		$extension = to_FileExtension( $extension );
-	}
-
-	if ( !defined $content_type || !defined $extension ) {
-		cluck 'Given extension and/or content type are incorrect.';
-	}
+	# Create a new default element
+	my $default = File::OPC::ContentTypesStream::Default->new(
+		'content_type' => $content_type,
+		'extension'    => $extension,
+	);
 
 	# Set the default in memory
-	$self->{ 'defaults' }->{ $extension } = $content_type;
+	push @{ $self->get_defaults() }, $default;
 
+	# Not sure what to return yet
 	return;
 }
 
@@ -139,7 +131,14 @@ sub get_default {
 		if !defined $extension;
 
 	# Return the MIME Type
-	return exists $self->{ 'defaults' }->{ $extension } ? $self->{ 'defaults' }->{ $extension } : undef;
+	foreach my $default ( @{ $self->get_defaults() } ) {
+		if ( $default->get_extension() eq $extension ) {
+			return $default->get_content_type();
+		}
+	}
+
+	# Nothing found
+	return;
 }
 
 sub get_mime_type {
@@ -236,9 +235,10 @@ This will get the override for a certain part name
 This module is dependent on the following modules:
 
 L<Carp>
+L<File::OPC::ContentTypesStream::Default>
 L<File::OPC::Library::ContentTypesStream>
 L<Moose>
-L<Moose::Util::TypeConstraints>
+L<MooseX::FollowPBP>
 L<MooseX::StrictConstructor>
 L<XML::XPath>
 
