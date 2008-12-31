@@ -16,7 +16,6 @@ use File::OPC::Library::ContentTypesStream qw(
 	UriPack
 );
 
-use Carp 'cluck';
 use XML::XPath 1.13;
 
 our $AUTHORITY = 'cpan:DOUGDUDE';
@@ -234,7 +233,6 @@ This will get the override for a certain part name
 
 This module is dependent on the following modules:
 
-L<Carp>
 L<File::OPC::ContentTypesStream::Default>
 L<File::OPC::ContentTypesStream::Override>
 L<File::OPC::Library::ContentTypesStream>

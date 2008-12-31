@@ -18,7 +18,6 @@ no_index:
     - inc
     - t
 requires:
-  Carp: 0
   MIME::Type: 1.24
   Moose: 0.62
   Moose::Util::TypeConstraints: 0

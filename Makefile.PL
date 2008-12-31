@@ -4,7 +4,6 @@ name     'File-OPC';
 all_from 'lib/File/OPC.pm';
 author   'Douglas Christopher Wilson <doug@somethingdoug.com>';
 
-requires 'Carp';
 requires 'MIME::Type' => 1.24;
 requires 'Moose' => 0.62;
 requires 'Moose::Util::TypeConstraints';
