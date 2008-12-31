@@ -8,6 +8,7 @@ requires 'Carp';
 requires 'MIME::Type' => 1.24;
 requires 'Moose' => 0.62;
 requires 'Moose::Util::TypeConstraints';
+requires 'MooseX::StrictConstructor';
 requires 'MooseX::Types' => 0.08;
 requires 'URI' => 0.07;
 requires 'XML::XPath' => 1.13;

@@ -7,6 +7,7 @@ use warnings 'all';
 
 use Moose 0.62;
 use Moose::Util::TypeConstraints;
+use MooseX::StrictConstructor;
 
 use File::OPC::Library::ContentTypesStream qw(
 	FileExtension
@@ -18,7 +19,8 @@ use File::OPC::Library::ContentTypesStream qw(
 use Carp 'cluck';
 use XML::XPath 1.13;
 
-our $VERSION = '0.01';
+our $AUTHORITY = 'cpan:DOUGDUDE';
+our $VERSION   = '0.01';
 
 has 'defaults' => (
 	'isa' => MimeTypeMap,
@@ -32,6 +34,12 @@ has 'overrides' => (
 	'default' => sub { { } },
 );
 
+# Make the package immutable
+__PACKAGE__->meta->make_immutable;
+
+# Remove Moose keywords
+no Moose;
+
 sub BUILD {
 	my ( $self, $part ) = @_;
 
@@ -39,6 +47,7 @@ sub BUILD {
 
 	if ( exists $part->{ 'string' } ) {
 		$xpath = XML::XPath->new( 'xml' => $part->{ 'string' } );
+		delete $part->{ 'string' };
 	}
 	else {
 		confess;
@@ -156,8 +165,6 @@ sub get_override {
 	return exists $self->{ 'overrides' }->{ $partname } ? $self->{ 'overrides' }->{ $partname } : undef;
 }
 
-__PACKAGE__->meta->make_immutable;
-
 1;
 
 __END__
@@ -232,6 +239,7 @@ L<Carp>
 L<File::OPC::Library::ContentTypesStream>
 L<Moose>
 L<Moose::Util::TypeConstraints>
+L<MooseX::StrictConstructor>
 L<XML::XPath>
 
 =head1 BUGS AND LIMITATIONS
