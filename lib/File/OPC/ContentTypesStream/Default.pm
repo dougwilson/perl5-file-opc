@@ -10,8 +10,8 @@ use MooseX::FollowPBP;
 use MooseX::StrictConstructor;
 
 use File::OPC::Library::ContentTypesStream qw(
-	FileExtension
-	MimeType
+	ST_ContentType
+	ST_Extension
 );
 
 our $AUTHORITY = 'cpan:DOUGDUDE';
@@ -20,14 +20,14 @@ our $VERSION   = '0.01';
 has 'content_type' => (
 	'coerce'   => 1,
 	'is'       => 'rw',
-	'isa'      => MimeType,
+	'isa'      => ST_ContentType(),
 	'required' => 1,
 );
 
 has 'extension' => (
 	'coerce'   => 1,
 	'is'       => 'rw',
-	'isa'      => FileExtension,
+	'isa'      => ST_Extension(),
 	'required' => 1,
 );
 
@@ -45,11 +45,13 @@ __END__
 
 =head1 NAME
 
-File::OPC::ContentTypesStream::Default - Content Types Stream Markup Default object
+File::OPC::ContentTypesStream::Default - Content Types Stream Markup Default
+object
 
 =head1 VERSION
 
-This documnetation refers to <File::OPC::ContentTypesStream::Default> version 0.01
+This documnetation refers to <File::OPC::ContentTypesStream::Default> version
+0.01
 
 =head1 SYNOPSIS
 

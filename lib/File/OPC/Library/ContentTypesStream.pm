@@ -7,14 +7,16 @@ use warnings 'all';
 
 use MooseX::Types 0.08 -declare => [qw(
 	FileExtension
-	MimeType
-	MimeTypeMap
-	UriPack
+	ST_ContentType
+	ST_Extension
 )];
 use MooseX::Types::Moose qw(
-	HashRef
 	Object
 	Str
+);
+
+use File::OPC::Library::Core qw(
+	MimeType
 );
 
 use MIME::Type 1.24;
@@ -39,24 +41,17 @@ coerce FileExtension()
 	=> from Str()
 		=> via { m{ \A [a-z]+ \z }imsx ? lc( $_ ) : lc [ m{ \. ( [a-z]+ ) \z }imsx ]->[0] };
 
-subtype MimeType()
-	=> as Object()
-	=> where { $_->isa( 'MIME::Type' ) };
+subtype ST_ContentType()
+	=> as MimeType();
 
-coerce MimeType()
+coerce ST_ContentType()
 	=> from Str()
-		=> via { MIME::Type->new( 'type' => $_ ) };
+		=> via {
+			to_MimeType( $_ );
+		};
 
-subtype MimeTypeMap()
-	=> as HashRef[MimeType()];
-
-subtype UriPack()
-	=> as Object()
-	=> where { $_->isa( 'URI' ) };
-
-coerce UriPack()
-	=> from Str()
-		=> via { URI->new( $_, 'pack' ) };
+subtype ST_Extension()
+	=> as FileExtension();
 
 1;
 
@@ -70,22 +65,25 @@ File::OPC::Library::ContentTypesStream - Content Types Stream Markup types
 
 =head1 VERSION
 
-This documentation refers to <File::OPC::Library::ContentTypesStream> version 0.01
+This documentation refers to <File::OPC::Library::ContentTypesStream> version
+0.01
 
 =head1 SYNOPSIS
 
-  use File::OPC::Library::ContentTypesStream qw( MimeType MimeTypeMap );
-  # This will import MimeType and MimeTypeMap types into your namespace
-  # as well as some helpers like to_MimeType and is_MimeType
+  use File::OPC::Library::ContentTypesStream qw( ST_Extension ST_ContentType );
+  # This will import ST_Extension and ST_ContentType types into your namespace
+  # as well as some helpers like to_ST_ContentType and is_ST_ContentType
   
-  my $text_mime = to_MimeType( 'text/plain' ); # Change the string to a MIME type type
-  if ( is_MimeType( $text_mime ) ) {           # Test if $text_mime is a MIME type
-      print $text_mime->mediaType;
+  # Change the string to a ST_ContentType
+  my $contenttype = to_ST_ContentType( 'text/plain' );
+  if ( is_ST_ContentType( $contenttype ) ) {
+      # Test if $contentype is a ST_ContentType
+      print $contenttype->mediaType;
   }
 
 =head1 DESCRIPTION
 
-This module provides types unique to handling Content Types Sctreams.
+This module provides types unique to handling Content Types Streams.
 
 =head1 METHODS
 
@@ -97,11 +95,9 @@ No methods.
 
 =item * FileExtension
 
-=item * MimeType
+=item * ST_ContentType
 
-=item * MimeTypeMap
-
-=item * UriPack
+=item * ST_Extension
 
 =back
 

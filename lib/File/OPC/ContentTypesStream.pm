@@ -13,7 +13,9 @@ use File::OPC::ContentTypesStream::Default;
 use File::OPC::ContentTypesStream::Override;
 use File::OPC::Library::ContentTypesStream qw(
 	FileExtension
-	UriPack
+);
+use File::OPC::Library::Core qw(
+	PackUri
 );
 
 use XML::XPath 1.13;
@@ -134,8 +136,8 @@ sub get_mime_type {
 	my ( $self, $partname ) = @_;
 
 	# Corece
-	if ( !is_UriPack( $partname ) ) {
-		$partname = to_UriPack( $partname );
+	if ( !is_PackUri( $partname ) ) {
+		$partname = to_PackUri( $partname );
 	}
 
 	return $self->get_override( $partname ) || $self->get_default( $partname );
@@ -145,8 +147,8 @@ sub get_override {
 	my ( $self, $partname ) = @_;
 
 	# Coerce
-	if ( !is_UriPack( $partname ) ) {
-		$partname = to_UriPack( $partname );
+	if ( !is_PackUri( $partname ) ) {
+		$partname = to_PackUri( $partname );
 	}
 
 	return
@@ -171,7 +173,8 @@ __END__
 
 =head1 NAME
 
-File::OPC::ContentTypesStream - Content Types Stream Markup as defined in ECMA-376 10.1.2.2
+File::OPC::ContentTypesStream - Content Types Stream Markup as defined in
+ECMA-376 10.1.2.2
 
 =head1 VERSION
 
@@ -236,6 +239,7 @@ This module is dependent on the following modules:
 L<File::OPC::ContentTypesStream::Default>
 L<File::OPC::ContentTypesStream::Override>
 L<File::OPC::Library::ContentTypesStream>
+L<File::OPC::Library::Core>
 L<Moose>
 L<MooseX::FollowPBP>
 L<MooseX::StrictConstructor>

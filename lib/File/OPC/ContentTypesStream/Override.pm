@@ -10,8 +10,10 @@ use MooseX::FollowPBP;
 use MooseX::StrictConstructor;
 
 use File::OPC::Library::ContentTypesStream qw(
-	MimeType
-	UriPack
+	ST_ContentType
+);
+use File::OPC::Library::Core qw(
+	PackUri
 );
 
 our $AUTHORITY = 'cpan:DOUGDUDE';
@@ -20,14 +22,14 @@ our $VERSION   = '0.01';
 has 'content_type' => (
 	'coerce'   => 1,
 	'is'       => 'rw',
-	'isa'      => MimeType,
+	'isa'      => ST_ContentType(),
 	'required' => 1,
 );
 
 has 'part_name' => (
 	'coerce'   => 1,
 	'is'       => 'rw',
-	'isa'      => UriPack,
+	'isa'      => PackUri(),
 	'required' => 1,
 );
 
