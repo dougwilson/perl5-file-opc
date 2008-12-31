@@ -10,10 +10,9 @@ use MooseX::FollowPBP;
 use MooseX::StrictConstructor;
 
 use File::OPC::ContentTypesStream::Default;
+use File::OPC::ContentTypesStream::Override;
 use File::OPC::Library::ContentTypesStream qw(
 	FileExtension
-	MimeType
-	MimeTypeMap
 	UriPack
 );
 
@@ -30,9 +29,9 @@ has 'defaults' => (
 );
 
 has 'overrides' => (
-	'isa' => MimeTypeMap,
-	'coerce' => 1,
-	'default' => sub { { } },
+	'default' => sub { [ ] },
+	'is'      => 'rw',
+	'isa'     => 'ArrayRef[File::OPC::ContentTypesStream::Override]',
 );
 
 # Make the package immutable
@@ -68,12 +67,8 @@ sub BUILD {
 
 	# Now get all the override values
 	foreach my $override_node ( $xpath->findnodes( '/ct:Types/ct:Override' ) ) {
-		my $content_type = to_MimeType( $override_node->getAttribute( 'ContentType' ) );
-		my $partname     = to_UriPack( $override_node->getAttribute( 'PartName' ) );
-
-		if ( !defined $content_type || !defined $partname ) {
-			next;
-		}
+		my $content_type = $override_node->getAttribute( 'ContentType' );
+		my $partname     = $override_node->getAttribute( 'PartName' );
 
 		# Add the override to memory
 		$self->add_override( $partname => $content_type );
@@ -101,21 +96,16 @@ sub add_default {
 sub add_override {
 	my ( $self, $partname, $content_type ) = @_;
 
-	# Coerce
-	if ( !is_MimeType( $content_type ) ) {
-		$content_type = to_MimeType( $content_type );
-	}
-	if ( !is_UriPack( $partname ) ) {
-		$partname = to_UriPack( $partname );
-	}
-
-	if ( !defined $content_type || !defined $partname ) {
-		cluck 'Given part name and/or content type are incorrect.';
-	}
+	# Create a new override element
+	my $override = File::OPC::ContentTypesStream::Override->new(
+		'content_type' => $content_type,
+		'part_name'    => $partname,
+	);
 
 	# Set the override in memory
-	$self->{ 'overrides' }->{ $partname } = $content_type;
+	push @{ $self->get_overrides() }, $override;
 
+	# Not sure what to return yet
 	return;
 }
 
@@ -142,14 +132,14 @@ sub get_default {
 }
 
 sub get_mime_type {
-	my ( $self, $part ) = @_;
+	my ( $self, $partname ) = @_;
 
 	# Corece
-	if ( !is_UriPack( $part ) ) {
-		$part = to_UriPack( $part );
+	if ( !is_UriPack( $partname ) ) {
+		$partname = to_UriPack( $partname );
 	}
 
-	return $self->get_override( $part ) || $self->get_default( $part );
+	return $self->get_override( $partname ) || $self->get_default( $partname );
 }
 
 sub get_override {
@@ -160,8 +150,18 @@ sub get_override {
 		$partname = to_UriPack( $partname );
 	}
 
+	return
+		if !defined $partname;
+
 	# Return the MIME Type
-	return exists $self->{ 'overrides' }->{ $partname } ? $self->{ 'overrides' }->{ $partname } : undef;
+	foreach my $override ( @{ $self->get_overrides() } ) {
+		if ( $override->get_part_name() eq $partname ) {
+			return $override->get_content_type();
+		}
+	}
+
+	# Nothing found
+	return;
 }
 
 1;
@@ -236,6 +236,7 @@ This module is dependent on the following modules:
 
 L<Carp>
 L<File::OPC::ContentTypesStream::Default>
+L<File::OPC::ContentTypesStream::Override>
 L<File::OPC::Library::ContentTypesStream>
 L<Moose>
 L<MooseX::FollowPBP>

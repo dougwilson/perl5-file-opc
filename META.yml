@@ -22,6 +22,7 @@ requires:
   MIME::Type: 1.24
   Moose: 0.62
   Moose::Util::TypeConstraints: 0
+  MooseX::FollowPBP: 0
   MooseX::StrictConstructor: 0
   MooseX::Types: 0.08
   URI: 0.07

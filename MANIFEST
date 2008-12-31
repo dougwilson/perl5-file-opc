@@ -10,6 +10,7 @@ inc/Module/Install/WriteAll.pm
 lib/File/OPC.pm
 lib/File/OPC/ContentTypesStream.pm
 lib/File/OPC/ContentTypesStream/Default.pm
+lib/File/OPC/ContentTypesStream/Override.pm
 lib/File/OPC/Library/ContentTypesStream.pm
 Makefile.PL
 MANIFEST			This list of files
