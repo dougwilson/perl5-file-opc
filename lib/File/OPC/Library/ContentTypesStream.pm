@@ -3,6 +3,7 @@ package File::OPC::Library::ContentTypesStream;
 use 5.008;
 use strict;
 use utf8;
+use version 0.74;
 use warnings 'all';
 
 use MooseX::Types 0.08 -declare => [qw(
@@ -22,7 +23,9 @@ use File::OPC::Library::Core qw(
 use MIME::Type 1.24;
 use URI;
 
-our $VERSION = '0.01';
+# Module metadata
+our $AUTHORITY = 'cpan:DOUGDUDE';
+our $VERSION   = '0.01_01';
 
 subtype FileExtension()
 	=> as Str()

@@ -3,9 +3,12 @@ package File::OPC;
 use 5.008;
 use strict;
 use utf8;
+use version 0.74;
 use warnings 'all';
 
-our $VERSION = '0.01';
+# Module metadata
+our $AUTHORITY = 'cpan:DOUGDUDE';
+our $VERSION   = '0.01_01';
 
 1;
 
@@ -19,7 +22,7 @@ File::OPC - Manipulate Open Packaging Conventions files.
 
 =head1 VERSION
 
-This documnetation refers to <File::OPC> version 0.01
+This documnetation refers to <File::OPC> version 0.01_01
 
 =head1 SYNOPSIS
 

@@ -3,6 +3,7 @@ package File::OPC::ContentTypesStream::Override;
 use 5.008;
 use strict;
 use utf8;
+use version 0.74;
 use warnings 'all';
 
 use Moose 0.62;
@@ -16,8 +17,9 @@ use File::OPC::Library::Core qw(
 	PackUri
 );
 
+# Module metadata
 our $AUTHORITY = 'cpan:DOUGDUDE';
-our $VERSION   = '0.01';
+our $VERSION   = '0.01_01';
 
 has 'content_type' => (
 	'coerce'   => 1,

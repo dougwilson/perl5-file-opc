@@ -3,6 +3,7 @@ package File::OPC::ContentTypesStream;
 use 5.008;
 use strict;
 use utf8;
+use version 0.74;
 use warnings 'all';
 
 use Moose 0.62;
@@ -20,8 +21,9 @@ use File::OPC::Library::Core qw(
 
 use XML::XPath 1.13;
 
+# Module metadata
 our $AUTHORITY = 'cpan:DOUGDUDE';
-our $VERSION   = '0.01';
+our $VERSION   = '0.01_01';
 
 has 'defaults' => (
 	'default' => sub { [ ] },
