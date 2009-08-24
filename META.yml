@@ -20,6 +20,7 @@ no_index:
   directory:
     - inc
     - t
+    - xt
 requires:
   MIME::Type: 1.24
   Moose: 0.62
