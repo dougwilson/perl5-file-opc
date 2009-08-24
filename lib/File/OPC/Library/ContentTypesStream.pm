@@ -69,7 +69,7 @@ File::OPC::Library::ContentTypesStream - Content Types Stream Markup types
 
 =head1 VERSION
 
-This documentation refers to <File::OPC::Library::ContentTypesStream> version
+This documentation refers to L<File::OPC::Library::ContentTypesStream> version
 0.001
 
 =head1 SYNOPSIS
@@ -109,25 +109,47 @@ No methods.
 
 This module is dependent on the following modules:
 
-L<MIME::Type>
-L<MooseX::Types>
-L<MooseX::Types::Moose>
-L<URI>
+=over
 
-=head1 BUGS AND LIMITATIONS
+=item * L<MIME::Type> 1.24
 
-Please report any bugs or feature requests to C<bug-file-opc at rt.cpan.org>,
-or through the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=File-OPC>.
-I will be notified, and then you'll automatically be notified of progress on
-your bug as I make changes.
+=item * L<MooseX::Types> 0.08
+
+=item * L<MooseX::Types::Moose>
+
+=item * L<URI>
+
+=item * L<namespace::clean> 0.04
+
+=back
 
 =head1 AUTHOR
 
 Douglas Christopher Wilson, C<< <doug at somethingdoug.com> >>
 
+=head1 BUGS AND LIMITATIONS
+
+Please report any bugs or feature requests to C<bug-file-opc at rt.cpan.org>,
+or through the web interface at
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=File-OPC>.
+I will be notified, and then you'll automatically be notified of progress on
+your bug as I make changes.
+
+I highly encourage the submission of bugs and enhancements to my modules.
+
 =head1 LICENSE AND COPYRIGHT
 
-Copyright 2008 Douglas Christopher Wilson
+Copyright 2009 Douglas Christopher Wilson.
 
-This program is free software; you can redistribute it and/or modify it
-under the same terms as Perl itself.
+This program is free software; you can redistribute it and/or
+modify it under the terms of either:
+
+=over 4
+
+=item * the GNU General Public License as published by the Free
+Software Foundation; either version 1, or (at your option) any
+later version, or
+
+=item * the Artistic License version 2.0.
+
+=back
