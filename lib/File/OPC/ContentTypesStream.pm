@@ -171,8 +171,6 @@ sub get_override {
 
 __END__
 
-=encoding utf8
-
 =head1 NAME
 
 File::OPC::ContentTypesStream - Content Types Stream Markup as defined in

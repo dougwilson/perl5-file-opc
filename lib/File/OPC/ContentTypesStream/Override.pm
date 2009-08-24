@@ -45,8 +45,6 @@ no Moose;
 
 __END__
 
-=encoding utf8
-
 =head1 NAME
 
 File::OPC::ContentTypesStream::Override - Content Types Stream Markup Override

@@ -14,8 +14,6 @@ our $VERSION   = '0.01_01';
 
 __END__
 
-=encoding utf8
-
 =head1 NAME
 
 File::OPC - Manipulate Open Packaging Conventions files.

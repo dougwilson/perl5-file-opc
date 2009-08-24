@@ -60,8 +60,6 @@ subtype ST_Extension()
 
 __END__
 
-=encoding utf8
-
 =head1 NAME
 
 File::OPC::Library::ContentTypesStream - Content Types Stream Markup types

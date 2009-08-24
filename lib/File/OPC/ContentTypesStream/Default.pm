@@ -43,8 +43,6 @@ no Moose;
 
 __END__
 
-=encoding utf8
-
 =head1 NAME
 
 File::OPC::ContentTypesStream::Default - Content Types Stream Markup Default
