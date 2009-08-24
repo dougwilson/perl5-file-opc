@@ -4,6 +4,11 @@ use 5.008;
 use strict;
 use warnings 'all';
 
+###############################################################################
+# METADATA
+our $AUTHORITY = 'cpan:DOUGDUDE';
+our $VERSION   = '0.001';
+
 use MooseX::Types 0.08 -declare => [qw(
 	MimeType
 	PackUri
@@ -15,10 +20,6 @@ use MooseX::Types::Moose qw(
 
 use MIME::Type 1.24;
 use URI 0.07;
-
-# Module metadata
-our $AUTHORITY = 'cpan:DOUGDUDE';
-our $VERSION   = '0.01_01';
 
 ###############################################################################
 # ALL IMPORTS BEFORE THIS WILL BE ERASED
@@ -50,7 +51,7 @@ File::OPC::Library::Core - Core types
 
 =head1 VERSION
 
-This documentation refers to <File::OPC::Library::Core> version 0.01
+This documentation refers to <File::OPC::Library::Core> version 0.001
 
 =head1 SYNOPSIS
 

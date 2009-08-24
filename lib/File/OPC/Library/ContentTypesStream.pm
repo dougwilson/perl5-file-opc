@@ -4,6 +4,11 @@ use 5.008;
 use strict;
 use warnings 'all';
 
+###############################################################################
+# METADATA
+our $AUTHORITY = 'cpan:DOUGDUDE';
+our $VERSION   = '0.001';
+
 use MooseX::Types 0.08 -declare => [qw(
 	FileExtension
 	ST_ContentType
@@ -20,10 +25,6 @@ use File::OPC::Library::Core qw(
 
 use MIME::Type 1.24;
 use URI;
-
-# Module metadata
-our $AUTHORITY = 'cpan:DOUGDUDE';
-our $VERSION   = '0.01_01';
 
 ###############################################################################
 # ALL IMPORTS BEFORE THIS WILL BE ERASED
@@ -69,7 +70,7 @@ File::OPC::Library::ContentTypesStream - Content Types Stream Markup types
 =head1 VERSION
 
 This documentation refers to <File::OPC::Library::ContentTypesStream> version
-0.01
+0.001
 
 =head1 SYNOPSIS
 

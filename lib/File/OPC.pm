@@ -4,9 +4,10 @@ use 5.008;
 use strict;
 use warnings 'all';
 
-# Module metadata
+###############################################################################
+# METADATA
 our $AUTHORITY = 'cpan:DOUGDUDE';
-our $VERSION   = '0.01_01';
+our $VERSION   = '0.001';
 
 ###############################################################################
 # ALL IMPORTS BEFORE THIS WILL BE ERASED
@@ -22,7 +23,7 @@ File::OPC - Manipulate Open Packaging Conventions files.
 
 =head1 VERSION
 
-This documnetation refers to <File::OPC> version 0.01_01
+This documnetation refers to <File::OPC> version 0.001
 
 =head1 SYNOPSIS
 

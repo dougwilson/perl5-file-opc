@@ -4,6 +4,11 @@ use 5.008;
 use strict;
 use warnings 'all';
 
+###############################################################################
+# METADATA
+our $AUTHORITY = 'cpan:DOUGDUDE';
+our $VERSION   = '0.001';
+
 use Moose 0.62;
 use MooseX::FollowPBP;
 use MooseX::StrictConstructor;
@@ -12,10 +17,6 @@ use File::OPC::Library::ContentTypesStream qw(
 	ST_ContentType
 	ST_Extension
 );
-
-# module metadata
-our $AUTHORITY = 'cpan:DOUGDUDE';
-our $VERSION   = '0.01_01';
 
 ###############################################################################
 # ALL IMPORTS BEFORE THIS WILL BE ERASED
@@ -50,7 +51,7 @@ object
 =head1 VERSION
 
 This documnetation refers to <File::OPC::ContentTypesStream::Default> version
-0.01
+0.001
 
 =head1 SYNOPSIS
 

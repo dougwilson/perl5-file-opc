@@ -4,6 +4,11 @@ use 5.008;
 use strict;
 use warnings 'all';
 
+###############################################################################
+# METADATA
+our $AUTHORITY = 'cpan:DOUGDUDE';
+our $VERSION   = '0.001';
+
 use Moose 0.62;
 use MooseX::FollowPBP;
 use MooseX::StrictConstructor;
@@ -18,10 +23,6 @@ use File::OPC::Library::Core qw(
 );
 
 use XML::XPath 1.13;
-
-# Module metadata
-our $AUTHORITY = 'cpan:DOUGDUDE';
-our $VERSION   = '0.01_01';
 
 ###############################################################################
 # ALL IMPORTS BEFORE THIS WILL BE ERASED
@@ -177,7 +178,7 @@ ECMA-376 10.1.2.2
 
 =head1 VERSION
 
-This documnetation refers to <File::OPC::ContentTypesStream> version 0.01
+This documnetation refers to <File::OPC::ContentTypesStream> version 0.001
 
 =head1 SYNOPSIS
 
