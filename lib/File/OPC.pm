@@ -2,7 +2,6 @@ package File::OPC;
 
 use 5.008;
 use strict;
-use utf8;
 use warnings 'all';
 
 # Module metadata

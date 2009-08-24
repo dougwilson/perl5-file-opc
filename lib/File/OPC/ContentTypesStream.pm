@@ -2,7 +2,6 @@ package File::OPC::ContentTypesStream;
 
 use 5.008;
 use strict;
-use utf8;
 use warnings 'all';
 
 use Moose 0.62;

@@ -2,7 +2,6 @@ package File::OPC::Library::ContentTypesStream;
 
 use 5.008;
 use strict;
-use utf8;
 use warnings 'all';
 
 use MooseX::Types 0.08 -declare => [qw(
