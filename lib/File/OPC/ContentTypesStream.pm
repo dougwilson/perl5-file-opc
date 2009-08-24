@@ -23,6 +23,10 @@ use XML::XPath 1.13;
 our $AUTHORITY = 'cpan:DOUGDUDE';
 our $VERSION   = '0.01_01';
 
+###############################################################################
+# ALL IMPORTS BEFORE THIS WILL BE ERASED
+use namespace::clean 0.04 -except => [qw(meta)];
+
 has 'defaults' => (
 	'default' => sub { [ ] },
 	'is'      => 'rw',
@@ -37,9 +41,6 @@ has 'overrides' => (
 
 # Make the package immutable
 __PACKAGE__->meta->make_immutable;
-
-# Remove Moose keywords
-no Moose;
 
 sub BUILD {
 	my ( $self, $part ) = @_;

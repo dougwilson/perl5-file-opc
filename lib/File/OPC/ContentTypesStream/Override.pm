@@ -19,6 +19,10 @@ use File::OPC::Library::Core qw(
 our $AUTHORITY = 'cpan:DOUGDUDE';
 our $VERSION   = '0.01_01';
 
+###############################################################################
+# ALL IMPORTS BEFORE THIS WILL BE ERASED
+use namespace::clean 0.04 -except => [qw(meta)];
+
 has 'content_type' => (
 	'coerce'   => 1,
 	'is'       => 'rw',
@@ -35,9 +39,6 @@ has 'part_name' => (
 
 # Make the package immutable
 __PACKAGE__->meta->make_immutable;
-
-# Remove Moose keywords
-no Moose;
 
 1;
 

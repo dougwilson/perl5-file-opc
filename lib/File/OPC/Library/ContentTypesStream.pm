@@ -25,6 +25,10 @@ use URI;
 our $AUTHORITY = 'cpan:DOUGDUDE';
 our $VERSION   = '0.01_01';
 
+###############################################################################
+# ALL IMPORTS BEFORE THIS WILL BE ERASED
+use namespace::clean 0.04 -except => [qw(meta)];
+
 subtype FileExtension()
 	=> as Str()
 	=> where { m{ \A [a-z]+ \z }msx; };

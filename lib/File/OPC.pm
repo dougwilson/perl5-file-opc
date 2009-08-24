@@ -8,6 +8,10 @@ use warnings 'all';
 our $AUTHORITY = 'cpan:DOUGDUDE';
 our $VERSION   = '0.01_01';
 
+###############################################################################
+# ALL IMPORTS BEFORE THIS WILL BE ERASED
+use namespace::clean 0.04 -except => [qw(meta)];
+
 1;
 
 __END__

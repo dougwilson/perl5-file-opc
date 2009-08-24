@@ -20,6 +20,10 @@ use URI 0.07;
 our $AUTHORITY = 'cpan:DOUGDUDE';
 our $VERSION   = '0.01_01';
 
+###############################################################################
+# ALL IMPORTS BEFORE THIS WILL BE ERASED
+use namespace::clean 0.04 -except => [qw(meta)];
+
 subtype MimeType()
 	=> as Object()
 	=> where { $_->isa( 'MIME::Type' ) };

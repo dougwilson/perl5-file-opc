@@ -13,6 +13,7 @@ requires 'MooseX::FollowPBP';
 requires 'MooseX::Types' => 0.08;
 requires 'URI' => 0.07;
 requires 'XML::XPath' => 1.13;
+requires 'namespace::clean' => '0.04';
 
 test_requires 'File::Spec';
 test_requires 'Test::More';
