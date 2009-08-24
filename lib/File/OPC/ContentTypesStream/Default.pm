@@ -1,6 +1,6 @@
 package File::OPC::ContentTypesStream::Default;
 
-use 5.008;
+use 5.008001;
 use strict;
 use warnings 'all';
 
@@ -9,10 +9,13 @@ use warnings 'all';
 our $AUTHORITY = 'cpan:DOUGDUDE';
 our $VERSION   = '0.001';
 
+###############################################################################
+# MOOSE
 use Moose 0.62;
-use MooseX::FollowPBP;
-use MooseX::StrictConstructor;
+use MooseX::StrictConstructor 0.08;
 
+###############################################################################
+# MOOSE TYPES
 use File::OPC::Library::ContentTypesStream qw(
 	ST_ContentType
 	ST_Extension
@@ -22,21 +25,23 @@ use File::OPC::Library::ContentTypesStream qw(
 # ALL IMPORTS BEFORE THIS WILL BE ERASED
 use namespace::clean 0.04 -except => [qw(meta)];
 
-has 'content_type' => (
-	'coerce'   => 1,
+###############################################################################
+# ATTRIBUTES
+has content_type => (
 	'is'       => 'rw',
-	'isa'      => ST_ContentType(),
+	'isa'      => ST_ContentType,
+	'coerce'   => 1,
+	'required' => 1,
+);
+has extension => (
+	'is'       => 'rw',
+	'isa'      => ST_Extension,
+	'coerce'   => 1,
 	'required' => 1,
 );
 
-has 'extension' => (
-	'coerce'   => 1,
-	'is'       => 'rw',
-	'isa'      => ST_Extension(),
-	'required' => 1,
-);
-
-# Make the package immutable
+###############################################################################
+# MAKE MOOSE OBJECT IMMUTABLE
 __PACKAGE__->meta->make_immutable;
 
 1;
@@ -58,11 +63,11 @@ This documnetation refers to L<File::OPC::ContentTypesStream::Default> version
   use File::OPC::ContentTypesStream::Default;
   
   my $default = File::OPC::ContentTypesStream::Default->new(
-      'content_type' => 'text/xml',
-      'extension'    => 'xml',
+      content_type => 'text/xml',
+      extension    => 'xml',
   );
-  my $extension = $default->get_extension();
-  $default->set_content_type( 'application/xml' );
+  my $extension = $default->extension();
+  $default->content_type('application/xml');
 
 =head1 DESCRIPTION
 
@@ -71,41 +76,52 @@ Default as defined in ECMA-376 section 10.1.2.2.2.
 
 =head1 CONSTRUCTOR
 
-  my $default = File::OPC::ContentTypesStream::Default->new( %options );
+This is fully object-oriented, and as such before any method can be used, the
+constructor needs to be called to create an object to work with.
 
-=over 4
+  my $default = File::OPC::ContentTypesStream::Default->new(%options);
 
-=item * content_type
+=head2 new
 
-Required. This is a MIME type for the default file extension.
+This will construct a new object.
 
-=item * extension
+=over
 
-Required. This is the file extension.
+=item C<< new(%attributes) >>
+
+C<%attributes> is a HASH where the keys are attributes (specified in the
+L</ATTRIBUTES> section).
+
+=item C<< new($attributes) >>
+
+C<$attributes> is a HASHREF where the keys are attributes (specified in the
+L</ATTRIBUTES> section).
 
 =back
 
+=head1 ATTRIBUTES
+
+  # Get value for attribute named "my_attribute"
+  my $value = $object->my_attribute();
+
+  # Set value for attribute named "my_attrivute"
+  $object->my_attribute($value);
+
+=head2 content_type
+
+B<Required>
+
+This is a MIME type for the default file extension.
+
+=head2 extension
+
+B<Required>
+
+This is the file extension.
+
 =head1 METHODS
 
-=head2 get_content_type
-
-This will get the current MIME type for the default element.
-  $default->get_content_type();
-
-=head2 get_extension
-
-This will get the current file extension for the default element.
-  $default->get_extension();
-
-=head2 set_content_type
-
-This will set a new MIME type for the default element.
-  $default->set_content_type( 'text/xml' );
-
-=head2 set_extension
-
-This will set a new file extension for the default element.
-  $default->set_extension( 'rel' );
+This module has no methods.
 
 =head1 DEPENDENCIES
 

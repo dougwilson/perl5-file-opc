@@ -125,8 +125,8 @@ sub get_default {
 
 	# Return the MIME Type
 	foreach my $default ( @{ $self->get_defaults() } ) {
-		if ( $default->get_extension() eq $extension ) {
-			return $default->get_content_type();
+		if ( $default->extension() eq $extension ) {
+			return $default->content_type();
 		}
 	}
 
