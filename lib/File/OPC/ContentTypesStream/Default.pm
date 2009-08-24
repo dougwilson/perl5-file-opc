@@ -133,9 +133,7 @@ This module is dependent on the following modules:
 
 =item * L<Moose> 0.62
 
-=item * L<MooseX::FollowPBP>
-
-=item * L<MooseX::StrictConstructor>
+=item * L<MooseX::StrictConstructor> 0.08
 
 =item * L<namespace::clean> 0.04
 
