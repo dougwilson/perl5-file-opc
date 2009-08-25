@@ -66,6 +66,7 @@ This documnetation refers to L<File::OPC::ContentTypesStream::Default> version
       content_type => 'text/xml',
       extension    => 'xml',
   );
+
   my $extension = $default->extension();
   $default->content_type('application/xml');
 

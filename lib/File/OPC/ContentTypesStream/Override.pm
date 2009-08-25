@@ -9,10 +9,13 @@ use warnings 'all';
 our $AUTHORITY = 'cpan:DOUGDUDE';
 our $VERSION   = '0.001';
 
+###############################################################################
+# MOOSE
 use Moose 0.62;
-use MooseX::FollowPBP;
-use MooseX::StrictConstructor;
+use MooseX::StrictConstructor 0.08;
 
+###############################################################################
+# MOOSE TYPES
 use File::OPC::Library::ContentTypesStream qw(
 	ST_ContentType
 );
@@ -24,21 +27,23 @@ use File::OPC::Library::Core qw(
 # ALL IMPORTS BEFORE THIS WILL BE ERASED
 use namespace::clean 0.04 -except => [qw(meta)];
 
-has 'content_type' => (
-	'coerce'   => 1,
-	'is'       => 'rw',
-	'isa'      => ST_ContentType(),
-	'required' => 1,
+###############################################################################
+# ATTRIBUTES
+has content_type => (
+	is       => 'rw',
+	isa      => ST_ContentType,
+	coerce   => 1,
+	required => 1,
+);
+has part_name => (
+	is       => 'rw',
+	isa      => PackUri,
+	coerce   => 1,
+	required => 1,
 );
 
-has 'part_name' => (
-	'coerce'   => 1,
-	'is'       => 'rw',
-	'isa'      => PackUri(),
-	'required' => 1,
-);
-
-# Make the package immutable
+###############################################################################
+# MAKE MOOSE OBJECT IMMUTABLE
 __PACKAGE__->meta->make_immutable;
 
 1;
@@ -60,11 +65,12 @@ This documnetation refers to L<File::OPC::ContentTypesStream::Override> version
   use File::OPC::ContentTypesStream::Override;
   
   my $override = File::OPC::ContentTypesStream::Override->new(
-      'content_type' => 'text/xml',
-      'part_name'    => '/feeds/myfeed.rss',
+      content_type => 'text/xml',
+      part_name    => '/feeds/myfeed.rss',
   );
-  my $part_name = $override->get_part_name();
-  $override->set_content_type( 'application/xml' );
+
+  my $part_name = $override->part_name();
+  $override->content_type('application/xml');
 
 =head1 DESCRIPTION
 
@@ -73,41 +79,52 @@ Override as defined in ECMA-376 section 10.1.2.2.3.
 
 =head1 CONSTRUCTOR
 
-  my $override = File::OPC::ContentTypesStream::Override->new( %options );
+This is fully object-oriented, and as such before any method can be used, the
+constructor needs to be called to create an object to work with.
 
-=over 4
+  my $override = File::OPC::ContentTypesStream::Override->new(%options);
 
-=item * content_type
+=head2 new
 
-Required. This is a MIME type for the specified part name.
+This will construct a new object.
 
-=item * part_name
+=over
 
-Required. This is the part name.
+=item C<< new(%attributes) >>
+
+C<%attributes> is a HASH where the keys are attributes (specified in the
+L</ATTRIBUTES> section).
+
+=item C<< new($attributes) >>
+
+C<$attributes> is a HASHREF where the keys are attributes (specified in the
+L</ATTRIBUTES> section).
 
 =back
 
+=head1 ATTRIBUTES
+
+  # Get value for attribute named "my_attribute"
+  my $value = $object->my_attribute();
+
+  # Set value for attribute named "my_attrivute"
+  $object->my_attribute($value);
+
+=head2 content_type
+
+B<Required>
+
+This is a MIME type for the specified part name.
+
+=head2 part_name
+
+B<Required>
+
+This is the part name.
+
 =head1 METHODS
 
-=head2 get_content_type
-
-This will get the current MIME type for the override element.
-  $override->get_content_type();
-
-=head2 get_part_name
-
-This will get the current file extension for the override element.
-  $override->get_part_name();
-
-=head2 set_content_type
-
-This will set a new MIME type for the override element.
-  $override->set_content_type( 'text/xml' );
-
-=head2 set_part_name
-
-This will set a new file extension for the override element.
-  $override->set_part_name( '/feeds/friend.rss' );
+This module has no methods.
 
 =head1 DEPENDENCIES
 
@@ -117,11 +134,11 @@ This module is dependent on the following modules:
 
 =item * L<File::OPC::Library::ContentTypesStream>
 
+=item * L<File::OPC::Library::Core>
+
 =item * L<Moose> 0.62
 
-=item * L<MooseX::FollowPBP>
-
-=item * L<MooseX::StrictConstructor>
+=item * L<MooseX::StrictConstructor> 0.08
 
 =item * L<namespace::clean> 0.04
 

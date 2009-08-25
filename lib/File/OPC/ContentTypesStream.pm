@@ -125,8 +125,8 @@ sub get_default {
 
 	# Return the MIME Type
 	foreach my $default ( @{ $self->get_defaults() } ) {
-		if ( $default->extension() eq $extension ) {
-			return $default->content_type();
+		if ( $default->extension eq $extension ) {
+			return $default->content_type;
 		}
 	}
 
@@ -158,8 +158,8 @@ sub get_override {
 
 	# Return the MIME Type
 	foreach my $override ( @{ $self->get_overrides() } ) {
-		if ( $override->get_part_name() eq $partname ) {
-			return $override->get_content_type();
+		if ( $override->part_name eq $partname ) {
+			return $override->content_type;
 		}
 	}
 
