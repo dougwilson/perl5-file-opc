@@ -27,18 +27,37 @@ use namespace::clean 0.04 -except => [qw(meta)];
 
 ###############################################################################
 # ATTRIBUTES
+# ECMA-376 Part 2, 10.1.2.2.2, M2.6
 has content_type => (
 	'is'       => 'rw',
 	'isa'      => ST_ContentType,
 	'coerce'   => 1,
 	'required' => 1,
 );
+# ECMA-376 Part 2, 10.1.2.2.2, M2.6
 has extension => (
 	'is'       => 'rw',
 	'isa'      => ST_Extension,
 	'coerce'   => 1,
 	'required' => 1,
 );
+
+###############################################################################
+# METHODS
+sub applies_to {
+	my ($self, $extension) = @_;
+
+	# Transform the extension if needed
+	$extension = to_ST_Extension($extension);
+
+	if (!defined $extension) {
+		confess 'The supplied extension is not an extension';
+	}
+
+	# According to ECMA-376 Part 2, 10.1.2.4, extension comparison is case-
+	# insensitive ASCII
+	return lc $extension eq lc $self->extension;
+}
 
 ###############################################################################
 # MAKE MOOSE OBJECT IMMUTABLE
@@ -122,7 +141,9 @@ This is the file extension.
 
 =head1 METHODS
 
-This module has no methods.
+=head2 applies_to
+
+This method returns a Boolean if the object applies to the given extension.
 
 =head1 DEPENDENCIES
 

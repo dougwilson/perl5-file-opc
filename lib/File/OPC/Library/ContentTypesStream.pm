@@ -9,55 +9,74 @@ use warnings 'all';
 our $AUTHORITY = 'cpan:DOUGDUDE';
 our $VERSION   = '0.001';
 
+###############################################################################
+# MOOSE TYPE LIBRARY
 use MooseX::Types 0.08 -declare => [qw(
-	FileExtension
+	CT_Default
+	CT_Override
 	ST_ContentType
 	ST_Extension
 )];
+
+###############################################################################
+# MOOSE TYPES
+use File::OPC::Library::Core qw(
+	MimeType
+	PackUri
+);
 use MooseX::Types::Moose qw(
 	Object
 	Str
 );
 
-use File::OPC::Library::Core qw(
-	MimeType
+###############################################################################
+# MODULE IMPORTS
+use File::OPC::Utils qw(
+	get_extension_from_part_name
 );
-
-use MIME::Type 1.24;
-use URI;
+use Readonly 1.03;
 
 ###############################################################################
 # ALL IMPORTS BEFORE THIS WILL BE ERASED
 use namespace::clean 0.04 -except => [qw(meta)];
 
-subtype FileExtension()
-	=> as Str()
-	=> where { m{ \A [a-z]+ \z }msx; };
+###############################################################################
+# LOCAL CONSTANTS
+Readonly my $ST_EXTENSION_RE => qr{\A (?:
+	\&amp;|                 # Ampersand
+	\%[[:xdigit:]]{2}|      # Percent-encoded byte
+	[!\$'\(\)\*\+,:=\-_~@]| # Various punctuation
+	[[:alnum:]]             # Alpha-numeric
+)+ \z}msx;
 
-coerce FileExtension()
-	=> from Object()
-		=> via {
-			if ( $_->isa( 'URI' ) )
-			{
-				# This is for converting URI objects
-				return lc [ pop( @{ [ $_->path_segments ] } ) =~ m{ \. ( [a-z]+ ) \z }imsx ]->[0];
-			}
-			return;
-		}
-	=> from Str()
-		=> via { m{ \A [a-z]+ \z }imsx ? lc( $_ ) : lc [ m{ \. ( [a-z]+ ) \z }imsx ]->[0] };
+###############################################################################
+# TYPE DECLARATIONS
+# CT_Default
+class_type CT_Default,
+	{ class => 'File::OPC::ContentTypesStream::Default' };
 
-subtype ST_ContentType()
-	=> as MimeType();
+# CT_Override
+class_type CT_Override,
+	{ class => 'File::OPC::ContentTypesStream::Override' };
 
-coerce ST_ContentType()
-	=> from Str()
-		=> via {
-			to_MimeType( $_ );
-		};
+# ST_ContentType
+# ECMA-376 Part 2, D.1
+subtype ST_ContentType,
+	as MimeType;
 
-subtype ST_Extension()
-	=> as FileExtension();
+coerce ST_ContentType,
+	from Str,
+		via { to_MimeType($_) };
+
+# ST_Extension
+# ECMA-376 Part 2, D.1
+subtype ST_Extension,
+	as Str,
+	where { $_ =~ $ST_EXTENSION_RE };
+
+coerce ST_Extension,
+	from PackUri,
+		via { get_extension_from_part_name($_) };
 
 1;
 
@@ -74,10 +93,10 @@ This documentation refers to L<File::OPC::Library::ContentTypesStream> version
 
 =head1 SYNOPSIS
 
-  use File::OPC::Library::ContentTypesStream qw( ST_Extension ST_ContentType );
+  use File::OPC::Library::ContentTypesStream qw(ST_Extension ST_ContentType);
   # This will import ST_Extension and ST_ContentType types into your namespace
   # as well as some helpers like to_ST_ContentType and is_ST_ContentType
-  
+
   # Change the string to a ST_ContentType
   my $contenttype = to_ST_ContentType( 'text/plain' );
   if ( is_ST_ContentType( $contenttype ) ) {
@@ -91,13 +110,15 @@ This module provides types unique to handling Content Types Streams.
 
 =head1 METHODS
 
-No methods.
+This module has no methods.
 
 =head1 TYPES PROVIDED
 
 =over 4
 
-=item * FileExtension
+=item * CT_Default
+
+=item * CT_Override
 
 =item * ST_ContentType
 
@@ -111,13 +132,13 @@ This module is dependent on the following modules:
 
 =over
 
-=item * L<MIME::Type> 1.24
+=item * L<File::OPC::Library::Core>
 
 =item * L<MooseX::Types> 0.08
 
 =item * L<MooseX::Types::Moose>
 
-=item * L<URI>
+=item * L<Readonly> 1.03
 
 =item * L<namespace::clean> 0.04
 

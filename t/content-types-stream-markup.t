@@ -3,13 +3,10 @@
 use strict;
 use warnings 'all';
 
-use Test::More tests => 7;
+use Test::More tests => 6;
 
+use File::OPC::ContentTypesStream;
 use URI 0.07;
-
-BEGIN {
-	use_ok( 'File::OPC::ContentTypesStream' );
-}
 
 my $stream_simple = <<STREAM_SIMPLE;
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
@@ -23,10 +20,10 @@ my $stream_simple = <<STREAM_SIMPLE;
 </Types>
 STREAM_SIMPLE
 
-my $ct_simple = new_ok 'File::OPC::ContentTypesStream' => [ 'string' => $stream_simple ];
+my $ct_simple = new_ok 'File::OPC::ContentTypesStream' => [string => $stream_simple];
 
-is( $ct_simple->get_mime_type( '/image.png' )                    , 'image/png'          , 'Default MIME type from path name' );
-is( $ct_simple->get_mime_type( URI->new( '/image.png', 'pack' ) ), 'image/png'          , 'Default MIME type from path URI' );
-is( $ct_simple->get_mime_type( '/rss.xml' )                      , 'application/xml'    , 'Override MIME type' );
-is( $ct_simple->get_mime_type( '/test/rss.xml' )                 , 'application/rss+xml', 'Override MIME type' );
-is( $ct_simple->get_mime_type( '/test/rss.xmlx' )                , undef                , 'Non-existant mapping' );
+is($ct_simple->get_mime_type('/image.png')                  , 'image/png'          , 'Default MIME type from path name');
+is($ct_simple->get_mime_type(URI->new('/image.png', 'pack')), 'image/png'          , 'Default MIME type from path URI');
+is($ct_simple->get_mime_type('/rss.xml')                    , 'application/xml'    , 'Override MIME type');
+is($ct_simple->get_mime_type('/test/rss.xml')               , 'application/rss+xml', 'Override MIME type');
+is($ct_simple->get_mime_type('/test/rss.xmlx')              , undef                , 'Non-existant mapping');

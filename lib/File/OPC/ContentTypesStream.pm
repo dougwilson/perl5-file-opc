@@ -9,163 +9,187 @@ use warnings 'all';
 our $AUTHORITY = 'cpan:DOUGDUDE';
 our $VERSION   = '0.001';
 
+###############################################################################
+# MOOSE
 use Moose 0.62;
-use MooseX::FollowPBP;
-use MooseX::StrictConstructor;
+use MooseX::StrictConstructor 0.08;
 
-use File::OPC::ContentTypesStream::Default;
-use File::OPC::ContentTypesStream::Override;
+###############################################################################
+# MOOSE TYPES
 use File::OPC::Library::ContentTypesStream qw(
-	FileExtension
+	CT_Default
+	CT_Override
 );
 use File::OPC::Library::Core qw(
 	PackUri
 );
+use MooseX::Types::Moose qw(
+	ArrayRef
+);
 
+###############################################################################
+# MODULE IMPORTS
+use File::OPC::ContentTypesStream::Default;
+use File::OPC::ContentTypesStream::Override;
+use File::OPC::Utils qw(
+	get_extension_from_part_name
+);
+use List::Util 1.18 qw(first);
+use Readonly 1.03;
 use XML::XPath 1.13;
 
 ###############################################################################
 # ALL IMPORTS BEFORE THIS WILL BE ERASED
 use namespace::clean 0.04 -except => [qw(meta)];
 
-has 'defaults' => (
-	'default' => sub { [ ] },
-	'is'      => 'rw',
-	'isa'     => 'ArrayRef[File::OPC::ContentTypesStream::Default]',
-);
+###############################################################################
+# LOCAL CONSTANTS
+Readonly my $CONTENT_TYPES_STREAM_NAMESPACE =>
+	'http://schemas.openxmlformats.org/package/2006/content-types';
 
-has 'overrides' => (
-	'default' => sub { [ ] },
-	'is'      => 'rw',
-	'isa'     => 'ArrayRef[File::OPC::ContentTypesStream::Override]',
+###############################################################################
+# ATTRIBUTES
+has defaults => (
+	is      => 'rw',
+	isa     => ArrayRef[CT_Default],
+	default => sub { [] },
 );
-
-# Make the package immutable
-__PACKAGE__->meta->make_immutable;
+has overrides => (
+	is      => 'rw',
+	isa     => ArrayRef[CT_Override],
+	default => sub { [] },
+);
 
 sub BUILD {
-	my ( $self, $part ) = @_;
+	my ($self, $part) = @_;
 
 	my $xpath;
 
-	if ( exists $part->{ 'string' } ) {
-		$xpath = XML::XPath->new( 'xml' => $part->{ 'string' } );
-		delete $part->{ 'string' };
+	if (exists $part->{string}) {
+		$xpath = XML::XPath->new(xml => $part->{string});
+		delete $part->{string};
 	}
 	else {
 		confess;
 	}
 
 	# Set our namespaces
-	$xpath->set_namespace( 'ct', 'http://schemas.openxmlformats.org/package/2006/content-types' );
+	$xpath->set_namespace(ct => $CONTENT_TYPES_STREAM_NAMESPACE);
 
 	# Now get all the default values
-	foreach my $default_node ( $xpath->findnodes( '/ct:Types/ct:Default' ) ) {
-		my $content_type = $default_node->getAttribute( 'ContentType' );
-		my $extension    = $default_node->getAttribute( 'Extension' );
+	foreach my $default_node ($xpath->findnodes('/ct:Types/ct:Default')) {
+		my $content_type = $default_node->getAttribute('ContentType');
+		my $extension    = $default_node->getAttribute('Extension');
 
 		# Add the default to memory
-		$self->add_default( $extension => $content_type );
+		$self->add_default($extension => $content_type);
 	}
 
 	# Now get all the override values
-	foreach my $override_node ( $xpath->findnodes( '/ct:Types/ct:Override' ) ) {
-		my $content_type = $override_node->getAttribute( 'ContentType' );
-		my $partname     = $override_node->getAttribute( 'PartName' );
+	foreach my $override_node ($xpath->findnodes('/ct:Types/ct:Override')) {
+		my $content_type = $override_node->getAttribute('ContentType');
+		my $partname     = $override_node->getAttribute('PartName');
 
 		# Add the override to memory
-		$self->add_override( $partname => $content_type );
+		$self->add_override($partname => $content_type);
 	}
 
 	return;
 }
 
 sub add_default {
-	my ( $self, $extension, $content_type ) = @_;
+	my ($self, $extension, $content_type) = @_;
 
 	# Create a new default element
 	my $default = File::OPC::ContentTypesStream::Default->new(
-		'content_type' => $content_type,
-		'extension'    => $extension,
+		content_type => $content_type,
+		extension    => $extension,
 	);
 
 	# Set the default in memory
-	push @{ $self->get_defaults() }, $default;
+	push @{$self->defaults}, $default;
 
 	# Not sure what to return yet
 	return;
 }
 
 sub add_override {
-	my ( $self, $partname, $content_type ) = @_;
+	my ($self, $partname, $content_type) = @_;
 
 	# Create a new override element
 	my $override = File::OPC::ContentTypesStream::Override->new(
-		'content_type' => $content_type,
-		'part_name'    => $partname,
+		content_type => $content_type,
+		part_name    => $partname,
 	);
 
 	# Set the override in memory
-	push @{ $self->get_overrides() }, $override;
+	push @{$self->overrides}, $override;
 
 	# Not sure what to return yet
 	return;
 }
 
 sub get_default {
-	my ( $self, $extension ) = @_;
+	my ($self, $part_name) = @_;
 
-	# Coerce
-	if ( !is_FileExtension( $extension ) ) {
-		$extension = to_FileExtension( $extension );
+	# Transform the part name if needed
+	$part_name = to_PackUri($part_name);
+
+	if (!is_PackUri($part_name)) {
+		confess 'The given part name is not a valid part name';
 	}
 
-	return
-		if !defined $extension;
+	# Get the extension from the part name
+	my $extension = get_extension_from_part_name($part_name);
 
-	# Return the MIME Type
-	foreach my $default ( @{ $self->get_defaults() } ) {
-		if ( $default->extension eq $extension ) {
-			return $default->content_type;
-		}
+	# Get the matching default
+	my $default = first { $_->applies_to($extension) }
+		@{$self->defaults};
+
+	if (!defined $default) {
+		return;
 	}
 
-	# Nothing found
-	return;
+	# Return the content type
+	return $default->content_type;
 }
 
 sub get_mime_type {
-	my ( $self, $partname ) = @_;
+	my ($self, $partname) = @_;
 
 	# Corece
-	if ( !is_PackUri( $partname ) ) {
-		$partname = to_PackUri( $partname );
+	if (!is_PackUri($partname)) {
+		$partname = to_PackUri($partname);
 	}
 
-	return $self->get_override( $partname ) || $self->get_default( $partname );
+	return $self->get_override($partname) || $self->get_default($partname);
 }
 
 sub get_override {
-	my ( $self, $partname ) = @_;
+	my ($self, $part_name) = @_;
 
-	# Coerce
-	if ( !is_PackUri( $partname ) ) {
-		$partname = to_PackUri( $partname );
+	# Transform the part name if needed
+	$part_name = to_PackUri($part_name);
+
+	if (!is_PackUri($part_name)) {
+		confess 'The given part name is not a valid part name';
 	}
 
-	return
-		if !defined $partname;
+	# Get the matching override
+	my $override = first { $_->applies_to($part_name) }
+		@{$self->overrides};
 
-	# Return the MIME Type
-	foreach my $override ( @{ $self->get_overrides() } ) {
-		if ( $override->part_name eq $partname ) {
-			return $override->content_type;
-		}
+	if (!defined $override) {
+		return;
 	}
 
-	# Nothing found
-	return;
+	# Return the content type
+	return $override->content_type;
 }
+
+###############################################################################
+# MAKE MOOSE OBJECT IMMUTABLE
+__PACKAGE__->meta->make_immutable;
 
 1;
 
@@ -183,8 +207,10 @@ This documnetation refers to L<File::OPC::ContentTypesStream> version 0.001
 =head1 SYNOPSIS
 
   use File::OPC::ContentTypesStream;
-  
-  my $content_types = File::OPC::ContentTypesStream->new( 'xml' => $xml_string );
+
+  my $content_types = File::OPC::ContentTypesStream->new(
+    xml => $xml_string
+  );
 
 =head1 DESCRIPTION
 
@@ -193,7 +219,7 @@ in ECMA-376 section 10.1.2.2.
 
 =head1 CONSTRUCTOR
 
-  my $content_types = File::OPC::ContentTypesStream->new( %options );
+  my $content_types = File::OPC::ContentTypesStream->new(%options);
 
 =over 4
 
@@ -247,13 +273,11 @@ This module is dependent on the following modules:
 
 =item * L<Moose> 0.62
 
-=item * L<MooseX::FollowPBP>
-
-=item * L<MooseX::StrictConstructor>
+=item * L<MooseX::StrictConstructor> 0.08
 
 =item * L<XML::XPath> 1.13
 
-=item * L<namespace::clean> 0.04
+=item * L<namespace::autoclean> 0.08
 
 =back
 

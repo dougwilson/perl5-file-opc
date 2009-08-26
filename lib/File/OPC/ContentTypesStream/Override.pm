@@ -29,18 +29,33 @@ use namespace::clean 0.04 -except => [qw(meta)];
 
 ###############################################################################
 # ATTRIBUTES
+# ECMA-376 Part 2, 10.1.2.2.3, M2.7
 has content_type => (
 	is       => 'rw',
 	isa      => ST_ContentType,
 	coerce   => 1,
 	required => 1,
 );
+# ECMA-376 Part 2, 10.1.2.2.3, M2.7
 has part_name => (
 	is       => 'rw',
 	isa      => PackUri,
 	coerce   => 1,
 	required => 1,
 );
+
+###############################################################################
+# METHODS
+sub applies_to {
+	my ($self, $part_name) = @_;
+
+	# Transform the part name if needed
+	$part_name = to_PackUri($part_name);
+
+	# According to ECMA-376 Part 2, 10.1.2.4, part name comparison is case-
+	# insensitive ASCII (which is privided by the URI package).
+	return $part_name eq $self->part_name;
+}
 
 ###############################################################################
 # MAKE MOOSE OBJECT IMMUTABLE
@@ -124,7 +139,9 @@ This is the part name.
 
 =head1 METHODS
 
-This module has no methods.
+=head2 applies_to
+
+This method returns a Boolean if the object applies to the given part name.
 
 =head1 DEPENDENCIES
 
