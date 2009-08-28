@@ -11,7 +11,7 @@ our $VERSION   = '0.001';
 
 ###############################################################################
 # MOOSE
-use Moose 0.62;
+use Moose 0.74;
 use MooseX::StrictConstructor 0.08;
 
 ###############################################################################
@@ -48,143 +48,367 @@ Readonly my $CONTENT_TYPES_STREAM_NAMESPACE =>
 	'http://schemas.openxmlformats.org/package/2006/content-types';
 
 ###############################################################################
-# ATTRIBUTES
-has defaults => (
+# PRIVATE ATTRIBUTES
+has _defaults => (
 	is      => 'rw',
 	isa     => ArrayRef[CT_Default],
 	default => sub { [] },
 );
-has overrides => (
+has _overrides => (
 	is      => 'rw',
 	isa     => ArrayRef[CT_Override],
 	default => sub { [] },
 );
 
-sub BUILD {
-	my ($self, $part) = @_;
+###############################################################################
+# METHODS
+sub add_mapping {
+	my ($self, @mappings) = @_;
 
-	my $xpath;
+	# Add according to ECMA-376 Part 2, 10.1.2.3
 
-	if (exists $part->{string}) {
-		$xpath = XML::XPath->new(xml => $part->{string});
-		delete $part->{string};
+	PAIR: while (my ($part_name, $content_type) = splice @mappings, 0, 2) {
+		# Get the extension from the part name
+		my $extension = get_extension_from_part_name($part_name);
+
+		if (!defined $extension) {
+			# The part name has no extension, so just add an override
+			$self->add_element(
+				$self->new_override_element(
+					content_type => $content_type,
+					part_name    => $part_name,
+				)
+			);
+
+			next PAIR;
+		}
+
+		# Get any existing default element for the extension
+		my $default_element = $self->default_element($extension);
+
+		if (defined $default_element) {
+			# Since the default exists for the extension, check the MIME type to
+			# determine if any rule needs to be applied.
+			if ($default_element->content_type eq $content_type) {
+				# They match and nothing needs to be done
+				next PAIR;
+			}
+		}
+
+		# Add an override by default
+		$self->add_element(
+			$self->new_override_element(
+				content_type => $content_type,
+				part_name    => $part_name,
+			)
+		);
 	}
-	else {
-		confess;
+
+	return $self;
+}
+
+sub add_default_mapping {
+	my ($self, @mappings) = @_;
+
+	PAIR: while (my ($extension, $content_type) = splice @mappings, 0, 2) {
+		# Add the default element
+		$self->add_element(
+			$self->new_default_element(
+				content_type => $content_type,
+				extension    => $extension,
+			)
+		);
 	}
 
-	# Set our namespaces
+	return $self;
+}
+
+sub add_element {
+	my ($self, @elements) = @_;
+
+	foreach my $element (@elements) {
+		# Determine the type of element
+		if (is_CT_Default($element)) {
+			# Check to see if the default already exists
+			if (defined $self->default_element($element->extension)) {
+				confess 'Unable to add default element, as the mapping already exists [M2.5]';
+			}
+
+			# Add this element to the default elements
+			push @{$self->_defaults}, $element;
+		}
+		elsif (is_CT_Override($element)) {
+			# Check to see if the override already exists
+			if (defined $self->override_element($element->part_name)) {
+				confess 'Unable to add default element, as the mapping already exists [M2.5]';
+			}
+
+			# Add this element to the override elements
+			push @{$self->_overrides}, $element;
+		}
+		else {
+			# Not sure what this is
+			confess sprintf 'Encountered unknown element %s and unable to add.',
+				$element;
+		}
+	}
+
+	return $self;
+}
+
+sub add_from_xml {
+	my ($self, $type, $value) = @_;
+
+	# Get the elements from the XML
+	my @elements = $self->_parse_xml($type, $value);
+
+	foreach my $element (@elements) {
+		# Just all each element
+		$self->add_element($element);
+	}
+
+	# Return self for chaining
+	return $self;
+}
+
+sub applied_element {
+	my ($self, $part_name) = @_;
+
+	# Get element according to ECMA-376 Part 2, 10.1.2.4
+
+	# Get the override element if it exists
+	my $override_element = $self->override_element($part_name);
+
+	if (defined $override_element) {
+		# There is an override element for this part name, so return the
+		# override element
+		return $override_element;
+	}
+
+	# Since there was no matching override, get the applying default element
+	my $default_element = $self->default_element(get_extension_from_part_name($part_name));
+
+	if (defined $default_element) {
+		# There is a default element for this part name, so return the default
+		# element.
+		return $default_element;
+	}
+
+	# Nothing matched, so the mapping is not defined
+	return;
+}
+
+sub clear_mappings {
+	my ($self) = @_;
+
+	# Remove all the defaults and overrides
+	$self->{_defaults } = [];
+	$self->{_overrides} = [];
+
+	return $self;
+}
+
+sub content_type {
+	my ($self, $part_name) = @_;
+
+	# Get the element that applies to the part name
+	my $applied_element = $self->applied_element($part_name);
+
+	if (defined $applied_element) {
+		# Return the corresponding content type
+		return $applied_element->content_type;
+	}
+
+	# Nothing matched, so the content type is not defined
+	return;
+}
+
+sub default_element {
+	my ($self, $extension) = @_;
+
+	# Get the matching default
+	my $default = first { $_->applies_to($extension) }
+		@{$self->_defaults};
+
+	return $default;
+}
+
+sub new_default_element {
+	my ($self, @args) = @_;
+
+	# Return a new default element
+	return File::OPC::ContentTypesStream::Default->new(@args);
+}
+
+sub new_override_element {
+	my ($self, @args) = @_;
+
+	# Return a new override element
+	return File::OPC::ContentTypesStream::Override->new(@args);
+}
+
+sub override_element {
+	my ($self, $part_name) = @_;
+
+	# Get the matching override
+	my $override = first { $_->applies_to($part_name) }
+		@{$self->_overrides};
+
+	return $override;
+}
+
+sub remove_default_mapping {
+	my ($self, @extensions) = @_;
+
+	foreach my $extension (@extensions) {
+		# Filter out the corresponding default element
+		my @new_defaults = grep { !$_->applies_to($extension) } @{$self->_defaults};
+
+		# Set the new defaults list
+		$self->_defaults(\@new_defaults);
+	}
+
+	return $self;
+}
+
+sub remove_mapping {
+	my ($self, @part_names) = @_;
+
+	foreach my $part_name (@part_names) {
+		# Filter out the corresponding override element
+		my @new_overrides = grep { !$_->applies_to($part_name) } @{$self->_overrides};
+
+		# Set the new overrides list
+		$self->_overrides(\@new_overrides);
+	}
+
+	return $self;
+}
+
+sub set_default_mapping {
+	my ($self, @mappings) = @_;
+
+	PAIR: while (my ($extension, $content_type) = splice @mappings, 0, 2) {
+		# Get the default element for the extnesion
+		my $default_element = $self->default_element($extension);
+
+		if (!defined $default_element) {
+			# There is no mapping for this extension
+			$self->add_default_mapping($extension => $content_type);
+
+			next PAIR;
+		}
+
+		if ($default_element->content_type eq $content_type) {
+			# The mapping is already set correctly
+			next PAIR;
+		}
+
+		$default_element->content_type($content_type);
+	}
+
+	return $self;
+}
+
+sub set_from_xml {
+	my ($self, $type, $value) = @_;
+
+	# Get the elements from the XML
+	my @elements = $self->_parse_xml($type, $value);
+
+	foreach my $element (@elements) {
+		if (is_CT_Default($element)) {
+			# Set the default mapping
+			$self->set_default_mapping($element->extension, $element->content_type);
+		}
+		else {
+			# Set the override mapping
+			$self->set_mapping($element->part_name, $element->content_type);
+		}
+	}
+
+	# Return self for chaining
+	return $self;
+}
+
+sub set_mapping {
+	my ($self, @mappings) = @_;
+
+	PAIR: while (my ($part_name, $content_type) = splice @mappings, 0, 2) {
+		# Get the applied element for the part name
+		my $applied_element = $self->applied_element($part_name);
+
+		if (!defined $applied_element) {
+			# There is no mapping for this part name
+			$self->add_mapping($part_name => $content_type);
+
+			next PAIR;
+		}
+
+		if ($applied_element->content_type eq $content_type) {
+			# The mapping is already set correctly
+			next PAIR;
+		}
+
+		if (is_CT_Default($applied_element)) {
+			# Add a new override element
+			$self->add_mapping($part_name => $content_type);
+		}
+		else {
+			# Change the content type of the override element
+			$applied_element->content_type($content_type);
+		}
+	}
+
+	return $self;
+}
+
+###############################################################################
+# PRIVATE METHODS
+sub _parse_xml {
+	my ($self, $type, $value) = @_;
+
+	my @elements;
+
+	# Get the XML::XPath object from the arguments
+	my $xpath = $type eq 'content'     ? XML::XPath->new(xml   => $value   )
+	          : $type eq 'content_ref' ? XML::XPath->new(xml   => ${$value})
+	          : $type eq 'io'          ? XML::XPath->new(ioref => $value   )
+	          : undef;
+
+	if (!defined $xpath) {
+		confess 'No known arguments were provided';
+	}
+
+	# Set our namespace
 	$xpath->set_namespace(ct => $CONTENT_TYPES_STREAM_NAMESPACE);
 
 	# Now get all the default values
 	foreach my $default_node ($xpath->findnodes('/ct:Types/ct:Default')) {
 		my $content_type = $default_node->getAttribute('ContentType');
-		my $extension    = $default_node->getAttribute('Extension');
+		my $extension    = $default_node->getAttribute('Extension'  );
 
 		# Add the default to memory
-		$self->add_default($extension => $content_type);
+		push @elements, $self->new_default_element(
+			content_type => $content_type,
+			extension    => $extension,
+		);
 	}
 
 	# Now get all the override values
 	foreach my $override_node ($xpath->findnodes('/ct:Types/ct:Override')) {
 		my $content_type = $override_node->getAttribute('ContentType');
-		my $partname     = $override_node->getAttribute('PartName');
+		my $part_name    = $override_node->getAttribute('PartName'   );
 
 		# Add the override to memory
-		$self->add_override($partname => $content_type);
+		push @elements, $self->new_override_element(
+			content_type => $content_type,
+			part_name    => $part_name,
+		);
 	}
 
-	return;
-}
-
-sub add_default {
-	my ($self, $extension, $content_type) = @_;
-
-	# Create a new default element
-	my $default = File::OPC::ContentTypesStream::Default->new(
-		content_type => $content_type,
-		extension    => $extension,
-	);
-
-	# Set the default in memory
-	push @{$self->defaults}, $default;
-
-	# Not sure what to return yet
-	return;
-}
-
-sub add_override {
-	my ($self, $partname, $content_type) = @_;
-
-	# Create a new override element
-	my $override = File::OPC::ContentTypesStream::Override->new(
-		content_type => $content_type,
-		part_name    => $partname,
-	);
-
-	# Set the override in memory
-	push @{$self->overrides}, $override;
-
-	# Not sure what to return yet
-	return;
-}
-
-sub get_default {
-	my ($self, $part_name) = @_;
-
-	# Transform the part name if needed
-	$part_name = to_PackUri($part_name);
-
-	if (!is_PackUri($part_name)) {
-		confess 'The given part name is not a valid part name';
-	}
-
-	# Get the extension from the part name
-	my $extension = get_extension_from_part_name($part_name);
-
-	# Get the matching default
-	my $default = first { $_->applies_to($extension) }
-		@{$self->defaults};
-
-	if (!defined $default) {
-		return;
-	}
-
-	# Return the content type
-	return $default->content_type;
-}
-
-sub get_mime_type {
-	my ($self, $partname) = @_;
-
-	# Corece
-	if (!is_PackUri($partname)) {
-		$partname = to_PackUri($partname);
-	}
-
-	return $self->get_override($partname) || $self->get_default($partname);
-}
-
-sub get_override {
-	my ($self, $part_name) = @_;
-
-	# Transform the part name if needed
-	$part_name = to_PackUri($part_name);
-
-	if (!is_PackUri($part_name)) {
-		confess 'The given part name is not a valid part name';
-	}
-
-	# Get the matching override
-	my $override = first { $_->applies_to($part_name) }
-		@{$self->overrides};
-
-	if (!defined $override) {
-		return;
-	}
-
-	# Return the content type
-	return $override->content_type;
+	# Return parsed elements
+	return @elements;
 }
 
 ###############################################################################
@@ -208,54 +432,315 @@ This documnetation refers to L<File::OPC::ContentTypesStream> version 0.001
 
   use File::OPC::ContentTypesStream;
 
-  my $content_types = File::OPC::ContentTypesStream->new(
-    xml => $xml_string
-  );
+  # Create a new stream object and store somewhere
+  my $content_types = File::OPC::ContentTypesStream->new();
+
+  # Add in the mappings from a [Content_Types].xml file
+  $content_types->add_from_xml(content_ref => \$xml_contents);
+
+  # Get the mapping for a part
+  my $content_type = $content_types->content_type($part_name);
 
 =head1 DESCRIPTION
 
 This module provides an interface to the Content Types Stream Markup as defined
-in ECMA-376 section 10.1.2.2.
+in ECMA-376 Part 2, section 10.1.2.2.
+
+=head1 DOCUMENTATION NOTES
+
+=head2 C<add_> methods
+
+There are a range of methods beginning with C<add_> that behave according to
+the ECMA-376 Part 2, section 10.1.2.3 in which the addition will not occur
+if there is an existing mapping for the given part name or extension.
+
+=head2 Chaining
+
+This module allows the caller to make use of "chaining." This means that a
+method that normally would not return any information (because the method was
+a mutator, not an accessor), then a refernece to the object is returned. In
+this documentation, any method that returns the object states B<chained>.
+
+  # Create a new stream object, set a bunch of common default mappings
+  # and then read in the XML, overriding any current rule.
+  my $stream = File::OPC::ContentTypesStream->new
+    ->set_default_mapping(
+      txt => 'text/plain',
+      png => 'image/png',
+      jpg => 'image/jpeg',
+      rtf => 'text/rtf',
+    )
+    ->set_from_xml(content_ref => \$xml_content);
+
+=head2 C<set_> methods
+
+There are a range of methods beginning with C<set_> that does not behave
+according to the ECMA-376 Part 2, section 10.1.2.3. These are convience methods
+to make sure the mapping is applied or created. It is essentially the same ass
+checking that an override exists for the given part name, and if so it changes
+the content type, otherwise a new override will be added.
 
 =head1 CONSTRUCTOR
 
+This is fully object-oriented, and as such before any method can be used, the
+constructor needs to be called to create an object to work with.
+
   my $content_types = File::OPC::ContentTypesStream->new(%options);
 
-=over 4
+=head2 new
 
-=item * xml
+This will construct a new object.
 
-Optional. This would be an XML string. It will construct the overrides and
-defaults from the provided XML.
+=over
+
+=item C<< new(%attributes) >>
+
+C<%attributes> is a HASH where the keys are attributes (specified in the
+L</ATTRIBUTES> section).
+
+=item C<< new($attributes) >>
+
+C<$attributes> is a HASHREF where the keys are attributes (specified in the
+L</ATTRIBUTES> section).
 
 =back
 
+=head1 ATTRIBUTES
+
+This object has no attributes.
+
 =head1 METHODS
 
-=head2 add_default
+=head2 add_default_mapping
 
-This will let you add a default file extension mapping to the content types stream.
-  $content_types->add_default( 'png' => 'image/png' );
+Returns: B<chained> (See L</Chaining>).
 
-=head2 add_override
+  # Prototype
+  $content_types->add_default_mapping(%mappings);
+  $content_types->add_default_mapping($extension => $content_type, ...);
 
-This will let you add an override for a certain part name to the content types stream.
-  $content_types->add_override( '/text/iam.special' => 'text/html' );
+This will let you add a default file extension mapping to the content types
+stream. The argument is a HASH in which the keys are the part names and the
+values are the content types. Please read about L</add_ methods>.
 
-=head2 get_default
+=head2 add_element
 
-This will get the default MIME type for the given extension
-  $content_types->get_default( 'png' );
+Returns: B<chained> (See L</Chaining>).
 
-=head2 get_mime_type
+  # Prototype
+  $content_types->add_element(@elements);
 
-This will get the MIME type for the given part name.
-  $content_types->get_mime_type( '/images/logo.jpeg' );
+This will add the given elements to the object. The element is an object,
+either L<File::OPC::ContentTypesStream::Default> or
+L<File::OPC::ContentTypesStream::Override>. Please read about L</add_ methods>.
 
-=head2 get_override
+  # Add an element to the object
+  $content_types->add_element($default_element);
 
-This will get the override for a certain part name
-  $content_types->get_override( '/extras/rss.xml' );
+  # Add a bunch of elements all at once.
+  $content_types->add_element(@elements);
+
+=head2 add_from_xml
+
+Returns: B<chained> (See L</Chaining>).
+
+  # Prototype
+  $content_types->add_from_xml($argument_type => $argument);
+
+This will parse the given XML and incorporate the contents into the object.
+This method takes a HASH as the argument, and the following options can be
+used. Please note that only one should be used. Please read about
+L</add_ methods>.
+
+=over
+
+=item content
+
+This specifies the XML content as a string.
+
+=item content_ref
+
+This specifies the XML content as a reference to the content string. This is
+the suggested method, as it will not copy the entire XML contents multiple
+times across the stack.
+
+=item io
+
+This specifies the IO coderef to read the XML from.
+
+=back
+
+=head2 add_mapping
+
+Returns: B<chained> (See L</Chaining>).
+
+  # Prototype
+  $content_types->add_mapping(%mappings);
+  $content_types->add_mapping($part_name => $content_type, ...);
+
+This will let you add a part name mapping to the content types stream. The
+argument is a HASH in which the keys are the part names and the values are the
+content types. Please read about L</add_ methods>.
+
+=head2 applied_element
+
+Returns: The default or override element that applies to the part name (either
+a L<File::OPC::ContentTypesStream::Default> or
+L<File::OPC::ContentTypesStream::Override>).
+
+  # Prototype
+  my $applied_element = $content_types->applied_element($part_name);
+
+This will get the applied element that corresponds to the given part name. If
+there is no mapping for the given part name, then C<undef> is returned (as the
+mapping is undefined).
+
+=head2 clear_mappings
+
+Returns: B<chained> (See L</Chaining>).
+
+  # Prototype
+  $content_types->clear_mappings();
+
+This will clear all mappings in the object. This is rarely used, but provided
+if the need should arrise.
+
+=head2 content_type
+
+Returns: The content type of the part (a L<MIME::Type>).
+
+  # Prototype
+  my $content_type = $content_types->content_type($part_name);
+
+This will get the content type for the given part name. If there is no mapping
+for the given part name, then C<undef> is returned (as the mapping is
+undefined).
+
+=head2 default_element
+
+Returns: The default element for the extension (a
+L<File::OPC::ContentTypesStream::Default>).
+
+  # Prototype
+  my $default_element = $content_types->default_element($extension);
+
+This will get the L<File::OPC::ContentTypesStream::Default> object that
+corresponds to the given extension. If there is no default element for the
+given extension, then C<undef> is returned (as the mapping is undefined).
+
+=head2 new_default_element
+
+Returns: The newly created default element (a
+L<File::OPC::ContentTypesStream::Default>).
+
+  # Prototype
+  my $default_element = $content_types->new_default_element(%options);
+
+This will create a new L<File::OPC::ContentTypesStream::Default> object with
+the provided options. The default element will not be associated with the
+object in any way. Please see L<File::OPC::ContentTypesStream::Default> for
+what options to specify.
+
+=head2 new_override_element
+
+Returns: The default element for the extension (a
+L<File::OPC::ContentTypesStream::Override>).
+
+  # Prototype
+  my $override_element = $content_types->new_override_element(%options);
+
+This will create a new L<File::OPC::ContentTypesStream::Override> object with
+the provided options. The override element will not be associated with the
+object in any way. Please see L<File::OPC::ContentTypesStream::Override> for
+what options to specify.
+
+=head2 override_element
+
+Returns: The default element for the extension (a
+L<File::OPC::ContentTypesStream::Override>).
+
+  # Prototype
+  my $override_element = $content_types->override_element($part_name);
+
+This will get the L<File::OPC::ContentTypesStream::Override> object that
+corresponds to the given part name. The first argument is the part name. If
+there is no override element for the given part name, then C<undef> is returned
+(as the mapping is undefined).
+
+=head2 remove_default_mapping
+
+Returns: B<chained> (See L</Chaining>).
+
+  # Prototype
+  $content_types->remove_default_mapping(@extensions);
+
+This will remove the mappings for the specified extensions. This should be used
+with care, as this object does not track if there are any part names using a
+default mapping, and so the mappings for some part names may become lost.
+
+=head2 remove_mapping
+
+Returns: B<chained> (See L</Chaining>).
+
+  # Prototype
+  $content_types->remove_mapping(@part_names);
+
+This will remove the mappings for the specified part names. If the part name
+was mapped using a default mapping, then it won't look like it was removed, but
+any override for the specified part name will have been removed.
+
+=head2 set_default_mapping
+
+Returns: B<chained> (See L</Chaining>).
+
+  # Prototype
+  $content_types->set_default_mapping(%mappings);
+  $content_types->set_default_mapping($extension => $content_type, ...);
+
+This will let you set a default file extension mapping in the content types
+stream. Please read about L</set_ methods>.
+
+=head2 set_from_xml
+
+Returns: B<chained> (See L</Chaining>).
+
+  # Prototype
+  $content_types->set_from_xml($argument_type => $argument);
+
+This will parse the given XML and incorporate the contents into the object.
+This method takes a HASH as the argument, and the following options can be
+used. Please note that only one should be used. Please read about
+L</set_ methods>.
+
+=over
+
+=item content
+
+This specifies the XML content as a string.
+
+=item content_ref
+
+This specifies the XML content as a reference to the content string. This is
+the suggested method, as it will not copy the entire XML contents multiple
+times across the stack.
+
+=item io
+
+This specifies the IO coderef to read the XML from.
+
+=back
+
+=head2 set_mapping
+
+Returns: B<chained> (See L</Chaining>).
+
+  # Prototype
+  $content_types->set_mapping(%mappings);
+  $content_types->set_mapping($part_name => $content_type, ...);
+
+This will set a mapping in content types stream. The first argument is the part
+name and the second argument is the content type of the part. Please read about
+L</set_ methods>.
 
 =head1 DEPENDENCIES
 
@@ -271,9 +756,15 @@ This module is dependent on the following modules:
 
 =item * L<File::OPC::Library::Core>
 
-=item * L<Moose> 0.62
+=item * L<File::OPC::Utils>
+
+=item * L<List::Util> 1.18
+
+=item * L<Moose> 0.74
 
 =item * L<MooseX::StrictConstructor> 0.08
+
+=item * L<Readonly> 1.03
 
 =item * L<XML::XPath> 1.13
 

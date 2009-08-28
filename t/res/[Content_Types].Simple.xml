@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+	<Override PartName="/test/image.jpg" ContentType="image/jpeg"/>
+	<Default Extension="png" ContentType="image/png"/>
+	<Override PartName="/test/rss.xml" ContentType="application/rss+xml"/>
+	<Default Extension="wmf" ContentType="image/x-wmf"/>
+	<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+	<Default Extension="xml" ContentType="application/xml"/>
+</Types>

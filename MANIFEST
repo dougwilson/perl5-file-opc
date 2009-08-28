@@ -33,6 +33,7 @@ META.yml
 README
 t/00-load.t
 t/content-types-stream-markup.t
+t/res/[Content_Types].Simple.xml
 xt/clean-namespaces.t
 xt/critic.t
 xt/kwalitee.t

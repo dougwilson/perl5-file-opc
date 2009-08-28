@@ -5,7 +5,7 @@ author:
 build_requires:
   ExtUtils::MakeMaker: 6.42
   File::Spec: 0
-  Test::More: 0
+  Test::More: 0.88
   URI: 0.07
 configure_requires:
   ExtUtils::MakeMaker: 6.42
@@ -22,11 +22,13 @@ no_index:
     - t
     - xt
 requires:
+  List::Util: 1.18
   MIME::Type: 1.24
-  Moose: 0.62
+  Moose: 0.74
   Moose::Util::TypeConstraints: 0
-  MooseX::StrictConstructor: 0
+  MooseX::StrictConstructor: 0.08
   MooseX::Types: 0.08
+  Readonly: 1.03
   Sub::Exporter: 0.980
   Sub::Name: 0
   URI: 0.07
